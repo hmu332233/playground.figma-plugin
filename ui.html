@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>컴포넌트 CSS 추출</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 16px;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    h3 {
+      margin-top: 0;
+      font-weight: 500;
+      font-size: 16px;
+    }
+    
+    #no-selection {
+      text-align: center;
+      color: #888;
+      margin-top: 80px;
+      font-size: 14px;
+    }
+    
+    #output-container {
+      margin-top: 12px;
+    }
+    
+    .tab-buttons {
+      display: flex;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 12px;
+    }
+    
+    .tab-button {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-right: 8px;
+    }
+    
+    .tab-button.active {
+      border-bottom-color: #18A0FB;
+      color: #18A0FB;
+      font-weight: 500;
+    }
+    
+    #json-output, #css-output {
+      width: 100%;
+      height: 330px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: auto;
+      box-sizing: border-box;
+      white-space: pre;
+      background-color: #f8f9fa;
+    }
+    
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 8px;
+    }
+    
+    button {
+      background-color: #18A0FB;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    button:hover {
+      background-color: #0D8CE6;
+    }
+    
+    button:active {
+      background-color: #0B7BCF;
+    }
+    
+    button.secondary {
+      background-color: #f5f5f5;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+    
+    button.secondary:hover {
+      background-color: #eee;
+    }
+    
+    .component-info {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .info-item {
+      display: flex;
+    }
+    
+    .info-label {
+      font-weight: 500;
+      width: 80px;
+      color: #666;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .settings-panel {
+      margin-bottom: 16px;
+      padding: 12px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      border: 1px solid #eee;
+    }
+    
+    .settings-title {
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    
+    .settings-title .icon {
+      margin-right: 4px;
+    }
+    
+    .settings-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .settings-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .settings-option label {
+      font-size: 13px;
+      cursor: pointer;
+    }
+    
+    input[type="checkbox"] {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="no-selection" class="hidden">
+    <p>컴포넌트를 선택하면 CSS 정보가 표시됩니다.</p>
+  </div>
+  
+  <div id="content" class="hidden">
+    <h3>컴포넌트 정보</h3>
+    
+    <div class="component-info">
+      <div class="info-item">
+        <div class="info-label">이름:</div>
+        <div id="component-name"></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">타입:</div>
+        <div id="component-type"></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">ID:</div>
+        <div id="component-id"></div>
+      </div>
+    </div>
+    
+    <div class="settings-panel">
+      <div class="settings-title" id="settings-toggle">
+        <span class="icon">⚙️</span> CSS 설정
+      </div>
+      <div class="settings-content" id="settings-content">
+        <div class="settings-option">
+          <input type="checkbox" id="exclude-width" checked>
+          <label for="exclude-width">width 제외</label>
+        </div>
+        <div class="settings-option">
+          <input type="checkbox" id="exclude-height" checked>
+          <label for="exclude-height">height 제외</label>
+        </div>
+        <div class="settings-option">
+          <input type="checkbox" id="exclude-min-width">
+          <label for="exclude-min-width">min-width 제외</label>
+        </div>
+        <div class="settings-option">
+          <input type="checkbox" id="exclude-min-height">
+          <label for="exclude-min-height">min-height 제외</label>
+        </div>
+        <div class="settings-option">
+          <input type="checkbox" id="exclude-max-width">
+          <label for="exclude-max-width">max-width 제외</label>
+        </div>
+        <div class="settings-option">
+          <input type="checkbox" id="exclude-max-height">
+          <label for="exclude-max-height">max-height 제외</label>
+        </div>
+        <div class="settings-option">
+          <input type="checkbox" id="exclude-position">
+          <label for="exclude-position">position 제외</label>
+        </div>
+        <div class="settings-option">
+          <input type="checkbox" id="exclude-bg">
+          <label for="exclude-bg">background 제외</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tab-buttons">
+      <div class="tab-button active" data-tab="css">CSS</div>
+      <div class="tab-button" data-tab="json">JSON</div>
+    </div>
+    
+    <div id="output-container">
+      <pre id="css-output"></pre>
+      <pre id="json-output" class="hidden"></pre>
+    </div>
+    
+    <div class="button-container">
+      <div class="button-group">
+        <button id="copy-button">복사하기</button>
+        <button id="download-button" class="secondary">다운로드</button>
+      </div>
+      <button id="close-button" class="secondary">닫기</button>
+    </div>
+  </div>
+
+  <script>
+    // 요소 참조
+    const noSelection = document.getElementById('no-selection');
+    const content = document.getElementById('content');
+    const componentName = document.getElementById('component-name');
+    const componentType = document.getElementById('component-type');
+    const componentId = document.getElementById('component-id');
+    const cssOutput = document.getElementById('css-output');
+    const jsonOutput = document.getElementById('json-output');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const copyButton = document.getElementById('copy-button');
+    const downloadButton = document.getElementById('download-button');
+    const closeButton = document.getElementById('close-button');
+    const settingsToggle = document.getElementById('settings-toggle');
+    const settingsContent = document.getElementById('settings-content');
+    
+    // 설정 체크박스
+    const excludeWidth = document.getElementById('exclude-width');
+    const excludeHeight = document.getElementById('exclude-height');
+    const excludeMinWidth = document.getElementById('exclude-min-width');
+    const excludeMinHeight = document.getElementById('exclude-min-height');
+    const excludeMaxWidth = document.getElementById('exclude-max-width');
+    const excludeMaxHeight = document.getElementById('exclude-max-height');
+    const excludePosition = document.getElementById('exclude-position');
+    const excludeBg = document.getElementById('exclude-bg');
+    
+    // 데이터 저장
+    let componentData = null;
+    let currentTab = 'css';
+    
+    // 설정 값을 가져오는 함수
+    function getSettings() {
+      return {
+        excludeWidth: excludeWidth.checked,
+        excludeHeight: excludeHeight.checked,
+        excludeMinWidth: excludeMinWidth.checked,
+        excludeMinHeight: excludeMinHeight.checked,
+        excludeMaxWidth: excludeMaxWidth.checked,
+        excludeMaxHeight: excludeMaxHeight.checked,
+        excludePosition: excludePosition.checked,
+        excludeBg: excludeBg.checked
+      };
+    }
+    
+    // 속성을 필터링하는 함수
+    function filterCssProperties(css, settings) {
+      // 원본 객체를 변경하지 않도록 새 객체 생성
+      const filteredCss = {};
+      
+      // 모든 속성을 순회하면서 필터링 적용
+      Object.entries(css).forEach(([prop, value]) => {
+        // 제외 설정에 따라 속성 필터링
+        if (
+          (settings.excludeWidth && prop === 'width') ||
+          (settings.excludeHeight && prop === 'height') ||
+          (settings.excludeMinWidth && prop === 'min-width') ||
+          (settings.excludeMinHeight && prop === 'min-height') ||
+          (settings.excludeMaxWidth && prop === 'max-width') ||
+          (settings.excludeMaxHeight && prop === 'max-height') ||
+          (settings.excludePosition && (prop === 'position' || prop === 'top' || prop === 'right' || prop === 'bottom' || prop === 'left')) ||
+          (settings.excludeBg && (prop === 'background' || prop === 'background-color' || prop === 'background-image'))
+        ) {
+          // 제외 속성은 건너뜀
+          return;
+        }
+        
+        // 제외되지 않은 속성은 결과에 추가
+        filteredCss[prop] = value;
+      });
+      
+      return filteredCss;
+    }
+    
+    // 탭 전환 처리
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tab = button.dataset.tab;
+        
+        // 탭 버튼 활성화 상태 업데이트
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // 컨텐츠 표시 전환
+        if (tab === 'css') {
+          cssOutput.classList.remove('hidden');
+          jsonOutput.classList.add('hidden');
+          currentTab = 'css';
+        } else {
+          cssOutput.classList.add('hidden');
+          jsonOutput.classList.remove('hidden');
+          currentTab = 'json';
+        }
+      });
+    });
+    
+    // CSS 텍스트 생성 (재귀적)
+    function generateCssText(data, prefix = "", nested = false) {
+      // 기본 컴포넌트가 없는 경우
+      if (!data || !data.css) return "";
+      
+      let cssText = "";
+      
+      // 컴포넌트 이름과 타입 주석 추가
+      if (nested) {
+        cssText += `\n${prefix}/* ${data.name} (${data.type}) */\n`;
+      }
+      
+      // CSS 속성 추가
+      const cssProps = Object.entries(data.css)
+        .map(([property, value]) => `${prefix}${property}: ${value};`)
+        .join('\n');
+      
+      cssText += cssProps;
+      
+      // 자식 요소가 있는 경우 재귀적으로 처리
+      if (data.children && data.children.length > 0) {
+        const childPrefix = prefix + "  "; // 들여쓰기 증가
+        for (const child of data.children) {
+          const childCss = generateCssText(child, childPrefix, true);
+          if (childCss) {
+            cssText += childCss;
+          }
+        }
+      }
+      
+      return cssText;
+    }
+    
+    // 계층적 CSS 표시를 위한 재귀 함수
+    function displayNestedCSS(data, level = 0) {
+      if (!data) return "";
+      
+      // 현재 설정 가져오기
+      const settings = getSettings();
+      
+      // 들여쓰기 계산
+      const indent = "  ".repeat(level);
+      
+      // 컴포넌트 정보 주석 (이름, 타입 및 텍스트 내용 포함)
+      let result = `${indent}/* ${data.name} (${data.type})`;
+      
+      // 텍스트 내용이 있으면 추가
+      if (data.text) {
+        // 텍스트가 너무 길면 잘라서 표시
+        const trimmedText = data.text.length > 30 
+          ? data.text.substring(0, 27) + "..." 
+          : data.text;
+        result += `: "${trimmedText}"`;
+      }
+      
+      result += " */\n";
+      
+      // CSS 속성 필터링 및 추가
+      const filteredCss = filterCssProperties(data.css || {}, settings);
+      const cssProps = Object.entries(filteredCss).map(([prop, val]) => 
+        `${indent}${prop}: ${val};`
+      ).join('\n');
+      
+      result += cssProps + "\n\n";
+      
+      // 자식 컴포넌트들 처리
+      if (data.children && data.children.length > 0) {
+        for (const child of data.children) {
+          result += displayNestedCSS(child, level + 1);
+        }
+      }
+      
+      return result;
+    }
+    
+    // 컴포넌트 정보 표시 업데이트
+    function updateComponentInfo(data) {
+      componentData = data;
+      
+      // 기본 정보 표시
+      componentName.textContent = data.name || 'Unnamed';
+      componentType.textContent = data.type || 'Unknown';
+      componentId.textContent = data.id || '';
+      
+      // CSS 텍스트 생성 및 표시 (계층적 구조 포함)
+      cssOutput.textContent = displayNestedCSS(data);
+      
+      // JSON 표시
+      jsonOutput.textContent = JSON.stringify(data, null, 2);
+      
+      // UI 표시
+      noSelection.classList.add('hidden');
+      content.classList.remove('hidden');
+    }
+    
+    // Figma로부터 메시지 수신
+    window.onmessage = (event) => {
+      const message = event.data.pluginMessage;
+      
+      if (message.type === 'selection-updated') {
+        updateComponentInfo(message.data);
+      } else if (message.type === 'no-selection') {
+        componentData = null;
+        
+        // UI 업데이트
+        noSelection.classList.remove('hidden');
+        content.classList.add('hidden');
+      }
+    };
+    
+    // 설정 변경 처리
+    const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+    allCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        if (componentData) {
+          // CSS 표시 업데이트
+          cssOutput.textContent = displayNestedCSS(componentData);
+        }
+      });
+    });
+    
+    // 텍스트 복사 처리
+    copyButton.addEventListener('click', () => {
+      if (!componentData) return;
+      
+      const textToCopy = currentTab === 'css' 
+        ? displayNestedCSS(componentData)
+        : JSON.stringify(componentData, null, 2);
+      
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+          const type = currentTab.toUpperCase();
+          alert(`${type} 정보가 클립보드에 복사되었습니다!`);
+        })
+        .catch(err => {
+          console.error('복사 실패:', err);
+          alert('복사에 실패했습니다.');
+        });
+    });
+    
+    // 다운로드 처리
+    downloadButton.addEventListener('click', () => {
+      if (!componentData) return;
+      
+      const isCss = currentTab === 'css';
+      const content = isCss 
+        ? displayNestedCSS(componentData)
+        : JSON.stringify(componentData, null, 2);
+      
+      const type = isCss ? 'text/css' : 'application/json';
+      const extension = isCss ? 'css' : 'json';
+      const filename = `component-${componentData.name || 'info'}.${extension}`;
+      
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      
+      URL.revokeObjectURL(url);
+    });
+    
+    // 닫기 버튼
+    closeButton.addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'close-plugin' } }, '*');
+    });
+    
+    // 설정 토글 기능
+    settingsToggle.addEventListener('click', () => {
+      if (settingsContent.style.display === 'none') {
+        settingsContent.style.display = 'grid';
+      } else {
+        settingsContent.style.display = 'none';
+      }
+    });
+    
+    // 초기 상태 요청
+    parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
+  </script>
+</body>
+</html>

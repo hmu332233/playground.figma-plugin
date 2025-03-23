@@ -1,0 +1,12 @@
+{
+  "name": "Selection to JSON",
+  "id": "selection-to-json",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["dev"],
+  "capabilities": ["inspect"],
+  "menu": [
+    {"name": "선택 영역을 JSON으로 변환", "command": "convert-selection"}
+  ]
+}
