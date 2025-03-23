@@ -1,4 +1,10 @@
-# playground.figma
+# playground.figma-plugin
+
+- figma에서 특정 섹션을 필요한 형식의 json으로 변환하는 플러그인 테스트용 
+- 기존 커뮤니티 플러그인은 나한테 필요한걸 찾지 못함
+- 빠른 테스트만을 위해 코드의 대부분은 ai로 처리
+
+---
 
 Below are the steps to get your plugin running. You can also find instructions at:
 
